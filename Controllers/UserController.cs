@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Data;
 using ExpenseTracker.Models;
+using System.ComponentModel.DataAnnotations;
+using ExpenseTracker.DTO;
 
 namespace ExpenseTracker.Controllers
 {
@@ -19,20 +21,42 @@ namespace ExpenseTracker.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
-            return await _context.Users.ToListAsync();
+            var users = await _context.Users
+                     .Include(u => u.Expenses)
+                     .Select(u => new UserDTO
+                     {
+                         Id = u.Id,
+                         Username = u.Username,
+                         Email = u.Email,
+                         ExpenseId = u.Expenses.Select(e => e.Id).ToList()
+                     })
+                     .ToListAsync();
+
+            return Ok(users);
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetOneUser(int id)
+        public async Task<ActionResult<UserDTO>> GetOneUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users
+                .Include(u => u.Expenses)
+                .Where(u => u.Id == id)
+                .Select(u => new UserDTO
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Email = u.Email,
+                    ExpenseId = u.Expenses.Select(e => e.Id).ToList()
+                })
+                .FirstOrDefaultAsync();
 
             if (user == null)
             {
                 return NotFound();
             }
 
-            return user;
+            return Ok(user);
+            
         }
 
         [HttpPost]
