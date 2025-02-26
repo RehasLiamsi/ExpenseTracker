@@ -19,18 +19,18 @@ namespace ExpenseTracker.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<User>>> GetUsers()
+        public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
             var users = await _context.Users
-                     .Include(u => u.Expenses)
-                     .Select(u => new UserDTO
-                     {
-                         Id = u.Id,
-                         Username = u.Username,
-                         Email = u.Email,
-                         ExpenseId = u.Expenses.Select(e => e.Id).ToList()
-                     })
-                     .ToListAsync();
+        .Include(u => u.Expenses)
+        .Select(u => new UserDTO
+        {
+            Id = u.Id,
+            Username = u.Username,
+            Email = u.Email,
+            ExpenseIds = u.Expenses.Select(e => e.Id).ToList()
+        })
+        .ToListAsync();
 
             return Ok(users);
         }
@@ -39,16 +39,16 @@ namespace ExpenseTracker.Controllers
         public async Task<ActionResult<UserDTO>> GetOneUser(int id)
         {
             var user = await _context.Users
-                .Include(u => u.Expenses)
-                .Where(u => u.Id == id)
-                .Select(u => new UserDTO
-                {
-                    Id = u.Id,
-                    Username = u.Username,
-                    Email = u.Email,
-                    ExpenseId = u.Expenses.Select(e => e.Id).ToList()
-                })
-                .FirstOrDefaultAsync();
+        .Include(u => u.Expenses) 
+        .Where(u => u.Id == id)
+        .Select(u => new UserDTO
+        {
+            Id = u.Id,
+            Username = u.Username,
+            Email = u.Email,
+            ExpenseIds = u.Expenses.Select(e => e.Id).ToList()
+        })
+        .FirstOrDefaultAsync();
 
             if (user == null)
             {
@@ -56,16 +56,31 @@ namespace ExpenseTracker.Controllers
             }
 
             return Ok(user);
-            
         }
 
         [HttpPost]
-        public async Task<ActionResult<User>> CreateUser(User user)
+        public async Task<ActionResult<UserDTO>> CreateUser(UserDTO userDTO)
         {
+            var user = new User
+            {
+                Username = userDTO.Username,
+                Email = userDTO.Email,
+                PasswordHash = "hashed_password_here", 
+                Expenses = new List<Expense>() 
+            };
+
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetOneUser), new { id = user.Id }, user);
+            var createdUserDTO = new UserDTO
+            {
+                Id = user.Id,
+                Username = user.Username,
+                Email = user.Email,
+                ExpenseIds = user.Expenses.Select(e => e.Id).ToList()
+            };
+
+            return CreatedAtAction(nameof(GetOneUser), new { id = user.Id }, createdUserDTO);
         }
 
         [HttpPut("{id}")]
