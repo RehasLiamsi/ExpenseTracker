@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Data;
 using ExpenseTracker.Models;
+using ExpenseTracker.DTO;
 
 
 namespace ExpenseTracker.Controllers
@@ -18,9 +19,21 @@ namespace ExpenseTracker.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Expense>>> GetExpenses()
+        public async Task<ActionResult<IEnumerable<ExpenseDTO>>> GetExpenses()
         {
-            return await _context.Expenses.ToListAsync();
+            var expenses = await _context.Expenses
+                .Select(e => new ExpenseDTO
+                {
+                    Id = e.Id,
+                    Category = e.Category,
+                    Description = e.Description,
+                    Amount = e.Amount,
+                    Date = e.Date,
+                    UserId = e.UserId
+                })
+                .ToListAsync();
+
+            return Ok(expenses);
         }
 
         [HttpGet("{id}")]
