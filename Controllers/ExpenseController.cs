@@ -39,32 +39,60 @@ namespace ExpenseTracker.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Expense>> GetOneExpense(int id)
         {
-            var expense = await _context.Expenses.FindAsync(id);
+            var expense = await _context.Expenses
+        .Where(e => e.Id == id)
+        .Select(e => new ExpenseDTO
+        {
+            Id = e.Id,
+            Category = e.Category,
+            Description = e.Description,
+            Amount = e.Amount,
+            Date = e.Date,
+            UserId = e.UserId
+        })
+        .FirstOrDefaultAsync();
 
-            if(expense == null)
+            if (expense == null)
             {
                 return NotFound();
             }
 
-            return expense;
+            return Ok(expense);
         }
 
         [HttpPost]
-        public async Task<ActionResult<Expense>> CreateExpense(Expense expense)
+        public async Task<ActionResult<ExpenseDTO>> CreateExpense(ExpenseDTO expenseDTO)
         {
-            var user = await _context.Users.FindAsync(expense.UserId);
-            
+            var user = await _context.Users.FindAsync(expenseDTO.UserId);
             if (user == null)
             {
-                return BadRequest(new { message = "User witht the given ID does not exist." });
+                return BadRequest(new { message = "User with the given ID does not exist." });
             }
 
-            expense.User = user;
+            var expense = new Expense
+            {
+                Category = expenseDTO.Category,
+                Description = expenseDTO.Description,
+                Amount = expenseDTO.Amount,
+                Date = DateTime.SpecifyKind(expenseDTO.Date, DateTimeKind.Utc), // Ensure Date is UTC
+                UserId = expenseDTO.UserId,
+                User = user
+            };
 
             _context.Expenses.Add(expense);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetOneExpense), new { id = expense.Id }, expense);
+            var createdExpenseDTO = new ExpenseDTO
+            {
+                Id = expense.Id,
+                Category = expense.Category,
+                Description = expense.Description,
+                Amount = expense.Amount,
+                Date = expense.Date,
+                UserId = expense.UserId
+            };
+
+            return CreatedAtAction(nameof(GetOneExpense), new { id = expense.Id }, createdExpenseDTO);
         }
 
         [HttpPut("{id}")]
