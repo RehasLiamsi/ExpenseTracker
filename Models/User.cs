@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ExpenseTracker.Models
 {
@@ -16,6 +17,7 @@ namespace ExpenseTracker.Models
         public string Email { get; set; }
 
         [Required]
+        [JsonIgnore]
         public string PasswordHash { get; set; }
 
         public ICollection<Expense>? Expenses { get; set; }
