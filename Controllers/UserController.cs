@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Data;
 using ExpenseTracker.Models;
-using System.ComponentModel.DataAnnotations;
 using ExpenseTracker.DTO;
 
 namespace ExpenseTracker.Controllers
