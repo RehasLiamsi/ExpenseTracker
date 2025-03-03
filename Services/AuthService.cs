@@ -11,6 +11,10 @@ namespace ExpenseTracker.Services
 
         public AuthService(string jwtSecret)
         {
+            if (string.IsNullOrWhiteSpace(jwtSecret) || jwtSecret.Length < 32)
+            {
+                throw new ArgumentException("JWT secret key must be atleast 32 characters long.");
+            }
             _jwtSecret = jwtSecret;
         }
 
