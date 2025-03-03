@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Data;
 using ExpenseTracker.Models;
 using ExpenseTracker.DTO;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace ExpenseTracker.Controllers
@@ -18,6 +19,7 @@ namespace ExpenseTracker.Controllers
             _context = context;
         }
 
+        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ExpenseDTO>>> GetExpenses()
         {
