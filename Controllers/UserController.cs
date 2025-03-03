@@ -87,16 +87,22 @@ namespace ExpenseTracker.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users.Include(u => u.Expenses)
+                .FirstOrDefaultAsync(u => u.Id == id);
             if (user == null)
             {
-                return NotFound();
+                return NotFound(new {message = "User not found"});
+            }
+
+            if(user.Expenses != null && user.Expenses.Any())
+            {
+            _context.Expenses.RemoveRange(user.Expenses);
             }
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(new { message = "User and associated expenses deleted successfully" });
         }
     }
 }
