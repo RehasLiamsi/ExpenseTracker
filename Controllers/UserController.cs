@@ -58,31 +58,6 @@ namespace ExpenseTracker.Controllers
             return Ok(user);
         }
 
-        [HttpPost]
-        public async Task<ActionResult<UserDTO>> CreateUser(UserDTO userDTO)
-        {
-            var user = new User
-            {
-                Username = userDTO.Username,
-                Email = userDTO.Email,
-                PasswordHash = "hashed_password_here", 
-                Expenses = new List<Expense>() 
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-
-            var createdUserDTO = new UserDTO
-            {
-                Id = user.Id,
-                Username = user.Username,
-                Email = user.Email,
-                ExpenseIds = user.Expenses.Select(e => e.Id).ToList()
-            };
-
-            return CreatedAtAction(nameof(GetOneUser), new { id = user.Id }, createdUserDTO);
-        }
-
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, User updatedUser)
         {
