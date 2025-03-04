@@ -12,6 +12,8 @@ string jwtSecret = builder.Configuration.GetValue<string>("JwtSettings:Secret")
 
 builder.Services.AddSingleton(new AuthService(jwtSecret));
 
+builder.Services.AddAutoMapper(typeof(Program));
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
