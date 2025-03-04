@@ -5,6 +5,7 @@ using ExpenseTracker.Models;
 using ExpenseTracker.DTO;
 using Microsoft.AspNetCore.Authorization;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
 
 namespace ExpenseTracker.Controllers
@@ -28,15 +29,7 @@ namespace ExpenseTracker.Controllers
         public async Task<ActionResult<IEnumerable<ExpenseDTO>>> GetExpenses()
         {
             var expenses = await _context.Expenses
-                .Select(e => new ExpenseDTO
-                {
-                    Id = e.Id,
-                    Category = e.Category,
-                    Description = e.Description,
-                    Amount = e.Amount,
-                    Date = e.Date,
-                    UserId = e.UserId
-                })
+                .ProjectTo<ExpenseDTO>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
             return Ok(expenses);
@@ -47,15 +40,7 @@ namespace ExpenseTracker.Controllers
         {
             var expense = await _context.Expenses
         .Where(e => e.Id == id)
-        .Select(e => new ExpenseDTO
-        {
-            Id = e.Id,
-            Category = e.Category,
-            Description = e.Description,
-            Amount = e.Amount,
-            Date = e.Date,
-            UserId = e.UserId
-        })
+        .ProjectTo<ExpenseDTO>(_mapper.ConfigurationProvider)
         .FirstOrDefaultAsync();
 
             if (expense == null)
@@ -88,17 +73,7 @@ namespace ExpenseTracker.Controllers
             _context.Expenses.Add(expense);
             await _context.SaveChangesAsync();
 
-            var createdExpenseDTO = new ExpenseDTO
-            {
-                Id = expense.Id,
-                Category = expense.Category,
-                Description = expense.Description,
-                Amount = expense.Amount,
-                Date = expense.Date,
-                UserId = expense.UserId
-            };
-
-            return CreatedAtAction(nameof(GetOneExpense), new { id = expense.Id }, createdExpenseDTO);
+            return CreatedAtAction(nameof(GetOneExpense), new { id = expense.Id }, _mapper.Map<ExpenseDTO>(expense));
         }
 
         [HttpPut("{id}")]
