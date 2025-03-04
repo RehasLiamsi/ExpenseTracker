@@ -4,6 +4,7 @@ using ExpenseTracker.Data;
 using ExpenseTracker.Models;
 using ExpenseTracker.DTO;
 using Microsoft.AspNetCore.Authorization;
+using AutoMapper;
 
 
 namespace ExpenseTracker.Controllers
@@ -15,9 +16,12 @@ namespace ExpenseTracker.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        public ExpenseController(ApplicationDbContext context)
+        private readonly IMapper _mapper;
+
+        public ExpenseController(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         [HttpGet]
@@ -98,14 +102,20 @@ namespace ExpenseTracker.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateExpense(int id, Expense updatedExpense)
+        public async Task<IActionResult> UpdateExpense(int id, ExpenseDTO expenseDTO)
         {
-            if (id!= updatedExpense.Id)
+            var userId = int.Parse(User.FindFirst("id")?.Value ?? "0");
+
+            var expense = await _context.Expenses.FindAsync(id);
+            if (expense == null || expense.UserId != userId)
             {
-                return BadRequest();
+                return NotFound(new { message = "Expense not found ot not authorized to update" });
             }
 
-            _context.Entry(updatedExpense).State = EntityState.Modified;
+            expense.Category = expenseDTO.Category;
+            expense.Description = expenseDTO.Description;
+            expense.Amount = expenseDTO.Amount;
+            expense.Date = expenseDTO.Date;
 
             try
             {
@@ -113,28 +123,27 @@ namespace ExpenseTracker.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!_context.Expenses.Any(e => e.Id == id))
-                {
-                    return NotFound();
-                }
-                throw;
+                return Conflict(new { message = "Concurrency error occurred while updating the expense" });
             }
-            return NoContent();
+
+            return Ok(_mapper.Map<ExpenseDTO>(expense));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteExpense(int id)
         {
+            var userId = int.Parse(User.FindFirst("id")?.Value ?? "0");
+
             var expense = await _context.Expenses.FindAsync(id);
-            if (expense == null)
+            if (expense == null || expense.UserId != userId)
             {
-                return NotFound();
+                return NotFound(new { message = "Expense not found or not authorized to delete" });
             }
 
             _context.Expenses.Remove(expense);
             await _context.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(_mapper.Map<ExpenseDTO>(expense));
         }
     }
 }
