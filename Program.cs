@@ -7,7 +7,8 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var jwtSecret = builder.Configuration["JwtSettings:Secret"];
+string jwtSecret = builder.Configuration.GetValue<string>("JwtSettings:Secret") 
+    ?? throw new InvalidOperationException("JWT Secret is missing or empty.");
 
 builder.Services.AddSingleton(new AuthService(jwtSecret));
 
