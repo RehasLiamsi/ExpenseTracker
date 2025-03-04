@@ -27,7 +27,7 @@ namespace ExpenseTracker.Controllers
             Id = u.Id,
             Username = u.Username,
             Email = u.Email,
-            ExpenseIds = u.Expenses.Select(e => e.Id).ToList()
+            ExpenseIds = (u.Expenses != null && u.Expenses.Any()) ? u.Expenses.Select(e => e.Id).ToList() : new List<int>()
         })
         .ToListAsync();
 
@@ -45,7 +45,7 @@ namespace ExpenseTracker.Controllers
             Id = u.Id,
             Username = u.Username,
             Email = u.Email,
-            ExpenseIds = u.Expenses.Select(e => e.Id).ToList()
+            ExpenseIds = (u.Expenses != null && u.Expenses.Any()) ? u.Expenses.Select(e => e.Id).ToList() : new List<int>()
         })
         .FirstOrDefaultAsync();
 
