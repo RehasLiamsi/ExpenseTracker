@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace ExpenseTracker.Controllers
 {
+    [Authorize]
     [Route("api/expenses")]
     [ApiController]
     public class ExpenseController : ControllerBase
@@ -19,7 +20,6 @@ namespace ExpenseTracker.Controllers
             _context = context;
         }
 
-        [Authorize]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ExpenseDTO>>> GetExpenses()
         {
