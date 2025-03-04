@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Data;
 using ExpenseTracker.Models;
 using ExpenseTracker.DTO;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
 namespace ExpenseTracker.Controllers
 {
@@ -11,25 +13,20 @@ namespace ExpenseTracker.Controllers
     public class UserController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMapper _mapper;
 
-        public UserController(ApplicationDbContext context)
+        public UserController(ApplicationDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
             var users = await _context.Users
-        .Include(u => u.Expenses)
-        .Select(u => new UserDTO
-        {
-            Id = u.Id,
-            Username = u.Username,
-            Email = u.Email,
-            ExpenseIds = (u.Expenses != null && u.Expenses.Any()) ? u.Expenses.Select(e => e.Id).ToList() : new List<int>()
-        })
-        .ToListAsync();
+                .ProjectTo<UserDTO>(_mapper.ConfigurationProvider)
+                .ToListAsync();
 
             return Ok(users);
         }
@@ -38,16 +35,9 @@ namespace ExpenseTracker.Controllers
         public async Task<ActionResult<UserDTO>> GetOneUser(int id)
         {
             var user = await _context.Users
-        .Include(u => u.Expenses) 
-        .Where(u => u.Id == id)
-        .Select(u => new UserDTO
-        {
-            Id = u.Id,
-            Username = u.Username,
-            Email = u.Email,
-            ExpenseIds = (u.Expenses != null && u.Expenses.Any()) ? u.Expenses.Select(e => e.Id).ToList() : new List<int>()
-        })
-        .FirstOrDefaultAsync();
+                .Where(u => u.Id == id)
+                .ProjectTo<UserDTO>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
 
             if (user == null)
             {
@@ -58,14 +48,20 @@ namespace ExpenseTracker.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateUser(int id, User updatedUser)
+        public async Task<IActionResult> UpdateUser(int id, UserDTO userDTO)
         {
-            if (id != updatedUser.Id)
+            if (id != userDTO.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(updatedUser).State = EntityState.Modified;
+            var user = await _context.Users.FindAsync(id);
+            if (user == null)
+            {
+                return NotFound(new { message = "User not found" });
+            }
+
+            _mapper.Map(userDTO, user);
 
             try
             {
@@ -73,29 +69,27 @@ namespace ExpenseTracker.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!_context.Users.Any(u => u.Id == id))
-                {
-                    return NotFound();
-                }
-                throw;
+                return Conflict(new { message = "Concurrency error occurred while updating the user" });
             }
 
-            return NoContent();
+            return Ok(_mapper.Map<UserDTO>(user));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
-            var user = await _context.Users.Include(u => u.Expenses)
+            var user = await _context.Users
+                .Include(u => u.Expenses)
                 .FirstOrDefaultAsync(u => u.Id == id);
+
             if (user == null)
             {
-                return NotFound(new {message = "User not found"});
+                return NotFound(new { message = "User not found" });
             }
 
-            if(user.Expenses != null && user.Expenses.Any())
+            if (user.Expenses != null && user.Expenses.Any())
             {
-            _context.Expenses.RemoveRange(user.Expenses);
+                _context.Expenses.RemoveRange(user.Expenses);
             }
 
             _context.Users.Remove(user);
