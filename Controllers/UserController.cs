@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ExpenseTracker.Data;
-using ExpenseTracker.Models;
 using ExpenseTracker.DTO;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
