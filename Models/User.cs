@@ -11,14 +11,14 @@ namespace ExpenseTracker.Models
         public int Id { get; set; }
 
         [Required]
-        public string Username { get; set; }
+        public required string Username { get; set; }
 
         [Required]
-        public string Email { get; set; }
+        public required string Email { get; set; }
 
         [Required]
         [JsonIgnore]
-        public string PasswordHash { get; set; }
+        public required string PasswordHash { get; set; }
 
         public ICollection<Expense>? Expenses { get; set; }
     }
