@@ -4,6 +4,10 @@ using ExpenseTracker.Data;
 using ExpenseTracker.DTO;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Microsoft.AspNetCore.JsonPatch;
+using ExpenseTracker.Models;
+
+
 
 namespace ExpenseTracker.Controllers
 {
@@ -70,6 +74,28 @@ namespace ExpenseTracker.Controllers
             {
                 return Conflict(new { message = "Concurrency error occurred while updating the user" });
             }
+
+            return Ok(_mapper.Map<UserDTO>(user));
+        }
+
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> UpdateUserPartial(int id, [FromBody] JsonPatchDocument<UserDTO> patchDoc)
+        {
+            if (patchDoc?.Operations == null || !patchDoc.Operations.Any())
+                return BadRequest(new { message = "Invalid or empty JSON Patch request" });
+
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound(new { message = "User not found" });
+
+            var userDTO = _mapper.Map<UserDTO>(user);
+            patchDoc.ApplyTo(userDTO);
+
+            if (!TryValidateModel(userDTO))
+                return BadRequest(ModelState);
+
+            _mapper.Map(userDTO, user);
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
 
             return Ok(_mapper.Map<UserDTO>(user));
         }
