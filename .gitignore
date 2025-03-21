@@ -1,0 +1,104 @@
+# === General ===
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+.env
+.env.*
+
+# === OS Generated Files ===
+ehthumbs.db
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# === Node.js / Frontend ===
+node_modules/
+dist/
+build/
+.npm/
+.npmrc
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+.vite/
+.vscode/
+coverage/
+*.tgz
+
+# === Tailwind / PostCSS ===
+postcss.config.js
+tailwind.config.js
+tailwind.config.cjs
+
+# === React/Vite Specific ===
+*.svg
+*.webp
+*.map
+
+# === .NET / Backend ===
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.cache
+*.pdb
+*.obj
+*.dll
+*.exe
+*.vspscc
+*.vssscc
+*.nupkg
+*.snupkg
+*.mdf
+*.ldf
+*.sql
+*.dbmdl
+*.dbproj.schemaview
+*.bak
+*.csproj.user
+*.csproj.DotSettings
+*.sln
+
+# Folders to ignore
+bin/
+obj/
+.vs/
+Properties/
+
+# ASP.NET Configuration
+appsettings.json
+appsettings.*.json
+
+# === Test / Reports / Coverage ===
+TestResults/
+coverage/
+
+# === IDE / Tooling ===
+.idea/
+.vscode/
+*.sublime*
+*.code-workspace
+
+# === Git Directory Cleanup (Optional) ===
+*.orig
+*.rej
+
+# === Ignore Backend/Frontend IDE Working Files ===
+frontend/**/.vs/
+backend/**/.vs/
+frontend/**/.idea/
+backend/**/.idea/
+
+# === Optional ===
+# Ignore logs and telemetry data
+logs/
+*.log
+
+# === Allow keeping config template files ===
+!appsettings.template.json
